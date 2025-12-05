@@ -1,27 +1,120 @@
 <!doctype html>
-<html>
-  <head>
-    <meta charset="utf-8" />
-    <title>README</title>
-    <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <style>
-      body { font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial; margin: 1rem; }
-      pre { white-space: pre-wrap; word-wrap: break-word; background:#f8f8f8; padding:1rem; border-radius:6px; }
-    </style>
-  </head>
-  <body>
-    <h1>README</h1>
-    <pre id="readme">Loading README.md…</pre>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>README</title>
+  <link rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css">
+  <style>
+    :root {
+      --max-width: 900px;
+      --padding: 20px;
+      --bg: #fff;
+      --muted: #6b7280;
+    }
+    body {
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+      background: #f6f8fa;
+      margin: 0;
+      padding: 2rem;
+      color: #111827;
+      display: flex;
+      justify-content: center;
+    }
+    .container {
+      max-width: var(--max-width);
+      width: 100%;
+      background: var(--bg);
+      padding: var(--padding);
+      border-radius: 8px;
+      box-shadow: 0 1px 3px rgba(15,23,42,0.06);
+    }
+    header h1 { margin: 0 0 0.25rem 0; font-size: 1.5rem; }
+    header p { margin: 0 0 1rem 0; color: var(--muted); font-size: 0.95rem; }
+    /* Markdown content styles (basic) */
+    .markdown :where(h1,h2,h3,h4,h5,h6) { margin-top: 1.2rem; margin-bottom: .6rem; }
+    .markdown p { line-height: 1.6; margin: .4rem 0; }
+    .markdown pre { background: #0b1220; color: #e6edf3; padding: 1rem; border-radius: 6px; overflow: auto; }
+    .markdown code { background: rgba(27,31,35,0.05); padding: .2rem .4rem; border-radius: 6px; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, "Roboto Mono", "Courier New", monospace; }
+    .markdown img { max-width: 100%; height: auto; }
+    .muted { color: var(--muted); font-size: .95rem; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1 id="page-title">README</h1>
+      <p class="muted" id="subtitle">Rendering README.md…</p>
+    </header>
 
-    <script>
-      // Load README.md from the same folder and show as plain text.
-      fetch('README.md')
-        .then(response => {
-          if (!response.ok) throw new Error(response.status + ' ' + response.statusText);
-          return response.text();
-        })
-        .then(text => { document.getElementById('readme').textContent = text; })
-        .catch(err => { document.getElementById('readme').textContent = 'Could not load README.md: ' + err; });
-    </script>
-  </body>
+    <main id="readme" class="markdown">Loading README.md…</main>
+  </div>
+
+  <!-- Marked (markdown -> HTML), DOMPurify (sanitize), Highlight.js (code highlighting) -->
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/dompurify@2.4.0/dist/purify.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+
+  <script>
+    // Basic renderer options
+    marked.setOptions({
+      gfm: true,
+      breaks: true,
+      headerIds: true,
+      mangle: false
+    });
+
+    const readmeEl = document.getElementById('readme');
+    const titleEl = document.getElementById('page-title');
+    const subtitleEl = document.getElementById('subtitle');
+
+    fetch('README.md')
+      .then(response => {
+        if (!response.ok) throw new Error(response.status + ' ' + response.statusText);
+        return response.text();
+      })
+      .then(md => {
+        // Set document/page title from first H1 if present
+        const firstHeading = md.match(/^#\s+(.*)/m);
+        if (firstHeading && firstHeading[1]) {
+          document.title = firstHeading[1].trim();
+          titleEl.textContent = firstHeading[1].trim();
+          // Remove the first H1 from rendered content to avoid duplicate
+          md = md.replace(/^#\s+.*\n+/, '');
+        } else {
+          titleEl.textContent = 'README';
+        }
+
+        subtitleEl.textContent = 'Rendered from README.md';
+
+        // Convert to HTML, sanitize, and insert
+        const rawHtml = marked.parse(md);
+        const clean = DOMPurify.sanitize(rawHtml, {ADD_ATTR: ['target']});
+        readmeEl.innerHTML = clean;
+
+        // Open external links in new tab and add rel attributes
+        readmeEl.querySelectorAll('a[href]').forEach(a => {
+          try {
+            const url = new URL(a.href, location.href);
+            if (url.origin !== location.origin) {
+              a.setAttribute('target', '_blank');
+              a.setAttribute('rel', 'noopener noreferrer');
+            }
+          } catch (e) {
+            // ignore invalid URLs
+          }
+        });
+
+        // Highlight code blocks
+        document.querySelectorAll('pre code').forEach(block => {
+          try { hljs.highlightElement(block); } catch (e) {}
+        });
+      })
+      .catch(err => {
+        readmeEl.textContent = 'Could not load README.md: ' + err;
+        subtitleEl.textContent = '';
+      });
+  </script>
+</body>
 </html>
