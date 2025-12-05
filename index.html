@@ -1,0 +1,27 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>README</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <style>
+      body { font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial; margin: 1rem; }
+      pre { white-space: pre-wrap; word-wrap: break-word; background:#f8f8f8; padding:1rem; border-radius:6px; }
+    </style>
+  </head>
+  <body>
+    <h1>README</h1>
+    <pre id="readme">Loading README.md…</pre>
+
+    <script>
+      // Load README.md from the same folder and show as plain text.
+      fetch('README.md')
+        .then(response => {
+          if (!response.ok) throw new Error(response.status + ' ' + response.statusText);
+          return response.text();
+        })
+        .then(text => { document.getElementById('readme').textContent = text; })
+        .catch(err => { document.getElementById('readme').textContent = 'Could not load README.md: ' + err; });
+    </script>
+  </body>
+</html>
