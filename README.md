@@ -1,2 +1,1 @@
-# paintbot
 CNC Pigment
