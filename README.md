@@ -1,2 +1,2 @@
 CNC Pigment
-  /docs
+   docs
