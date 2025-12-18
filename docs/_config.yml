@@ -1,9 +1,1 @@
-title: PaintBot Blog
-description: >
-  Welcome to the PaintBot blog, created with the Jekyll Slate theme.
 
-theme: jekyll-theme-slate
-plugins:
-  - jekyll-feed
-
-github_project_url: https://github.com/ericubey/paintbot
